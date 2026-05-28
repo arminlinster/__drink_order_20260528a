@@ -11,7 +11,8 @@ import {
   Check, 
   User, 
   Search,
-  Sparkles
+  Sparkles,
+  Download
 } from "lucide-react";
 
 // API 後端 網址 (與 index.html 保持完全一致)
@@ -463,6 +464,47 @@ export default function App() {
       });
   };
 
+  const downloadOrdersAsCSV = () => {
+    if (filteredOrders.length === 0) {
+      alert("目前沒有任何訂單可以下載！");
+      return;
+    }
+    
+    // CSV Header with BOM for correct Excel rendering in Traditional Chinese (UTF-8)
+    let csvContent = "\uFEFF";
+    csvContent += "訂單編號,訂購時間,訂購人,飲品,規格(甜度/冰塊),數量,金額(元)\n";
+    
+    filteredOrders.forEach(o => {
+      // Escape double quotes and commas in CSV
+      const escape = (val: string | number) => {
+        const str = String(val).replace(/"/g, '""');
+        return str.includes(",") || str.includes("\n") || str.includes('"') ? `"${str}"` : str;
+      };
+      
+      csvContent += [
+        escape(o.orderId),
+        escape(new Date(o.timestamp).toLocaleString("zh-TW")),
+        escape(o.name),
+        escape(o.drink),
+        escape(`${o.sugar}/${o.ice}`),
+        escape(o.quantity),
+        escape(o.totalPrice)
+      ].join(",") + "\n";
+    });
+    
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateStr = new Date().toLocaleDateString("zh-TW", { month: "2-digit", day: "2-digit" }).replace("/", "").replace(" ", "");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `今日飲料訂單_${dateStr}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast("📊 訂單 CSV 下載成功！", "success");
+  };
+
   return (
     <div className="min-h-screen lg:h-screen w-full bg-slate-50 flex flex-col font-sans text-slate-800 overflow-y-auto lg:overflow-hidden select-none">
       
@@ -781,6 +823,18 @@ export default function App() {
               </h2>
               
               <div className="flex items-center gap-2">
+                {/* 下載 CSV 按鈕 */}
+                {filteredOrders.length > 0 && (
+                  <button
+                    onClick={downloadOrdersAsCSV}
+                    title="下載 CSV 檔案"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 border border-slate-200 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50/50 hover:border-emerald-200 text-xs font-bold rounded-lg transition-all active:scale-95 duration-150 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">下載清單</span>
+                  </button>
+                )}
+
                 {/* 看我的 toggle */}
                 {lastOrderName && (
                   <div className="flex rounded-md bg-slate-100 p-0.5 text-[10.5px] font-bold border border-slate-200/60 shadow-inner">
