@@ -1,6 +1,0 @@
-{
-  "name": "Office Beverage Ordering System",
-  "description": "An elegant, self-contained office beverage ordering system with dynamic menu display, order state tracking, and direct Google Apps Script synchronization.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
